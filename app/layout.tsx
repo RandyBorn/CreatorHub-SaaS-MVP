@@ -2,10 +2,12 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import NextAuthProvider from "@/components/SessionProvider";
 
 export const metadata: Metadata = {
-  title: "CreatorHub – SaaS MVP",
-  description: "SaaS-Plattform für Creator wie Lena",
+  title: "CoachPanel für Fitness-Coaches",
+  description:
+    "CoachPanel hilft Fitness-Coaches dabei, ihre Follower, Ziele und Trainingslevel an einem Ort zu organisieren.",
 };
 
 export default function RootLayout({
@@ -16,16 +18,10 @@ export default function RootLayout({
   return (
     <html lang="de">
       <body>
-        <Navbar />
-        <main
-          style={{
-            maxWidth: "900px",
-            margin: "2rem auto",
-            padding: "0 1rem",
-          }}
-        >
-          {children}
-        </main>
+        <NextAuthProvider>
+          <Navbar />
+          <main>{children}</main>
+        </NextAuthProvider>
       </body>
     </html>
   );

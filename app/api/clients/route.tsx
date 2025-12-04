@@ -1,25 +1,46 @@
 // app/api/clients/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { creators, Follower } from "@/data/mockDb";
+import { connectDB } from "@/lib/db";
+import CreatorModel from "@/models/Creator";
 
 interface CreateClientBody {
-  creatorId: number;
+  creatorId: string; // Mongo ObjectId als String
   name: string;
   goal: string;
   level: string;
 }
 
 export async function POST(req: NextRequest) {
-  const { creatorId, name, goal, level } = (await req.json()) as CreateClientBody;
+  await connectDB();
 
-  const creator = creators.find((c) => c.id === creatorId);
+  const { creatorId, name, goal, level } =
+    (await req.json()) as CreateClientBody;
 
-  if (!creator) {
-    return NextResponse.json({ error: "Creator not found" }, { status: 404 });
+  try {
+    const creator = await CreatorModel.findById(creatorId);
+
+    if (!creator) {
+      return NextResponse.json({ error: "Creator not found" }, { status: 404 });
+    }
+
+    creator.followers.push({ name, goal, level });
+    await creator.save();
+
+    return NextResponse.json(
+      {
+        _id: creator._id.toString(),
+        name: creator.name,
+        email: creator.email,
+        category: creator.category,
+        followers: creator.followers,
+      },
+      { status: 201 }
+    );
+  } catch (err) {
+    console.error("Error adding follower:", err);
+    return NextResponse.json(
+      { error: "Konnte Follower nicht hinzufügen" },
+      { status: 500 }
+    );
   }
-
-  const newFollower: Follower = { name, goal, level };
-  creator.followers.push(newFollower);
-
-  return NextResponse.json({ success: true, creator }, { status: 201 });
 }
